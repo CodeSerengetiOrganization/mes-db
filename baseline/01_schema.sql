@@ -81,6 +81,37 @@ CREATE TABLE equipment_compatibility (
     FOREIGN KEY (fixture_type_id) REFERENCES equipment_types(id)
 ) ENGINE=InnoDB;
 
+-- The products Master Table: A place to store all product definitions
+CREATE TABLE products (
+    product_id INT PRIMARY KEY AUTO_INCREMENT,
+    -- The Part Number, is the unique identifier for the product, this is for intenal use of PLC/EOL/Kafka,not to customers
+    product_code VARCHAR(50) UNIQUE NOT NULL, -- e.g., 'SCU-1234567890'
+    -- The display name for the product, this is for displaying to internal engineers or operators
+    product_name VARCHAR(100) NOT NULL, -- e.g., 'SCU-Ford-CD4-RevB'
+    product_description TEXT,           -- e.g., 'SCU-Ford-CD4-RevB is a controller module for Ford CD4'    
+    -- The broader family grouping
+    product_type VARCHAR(50) NOT NULL, -- e.g., 'SCU', 'PEPS', 'BCM'
+    product_revision VARCHAR(20), -- Engineering change level (e.g., "Rev B")
+    product_status ENUM('ACTIVE', 'INACTIVE') DEFAULT 'ACTIVE',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+-- CREATE TABLE products (
+--     product_id INT PRIMARY KEY AUTO_INCREMENT,
+    
+--     -- The "Human Readable" Part Number or Variant Code
+--     product_code VARCHAR(50) UNIQUE NOT NULL, -- e.g., 'SCU-CD4', 'SCU-CD391'
+    
+--     -- The broader family grouping
+--     product_family VARCHAR(50) NOT NULL,      -- e.g., 'SCU', 'PEPS', 'BCM'
+    
+--     display_name VARCHAR(100) NOT NULL,       -- e.g., 'SCU CD4 Controller Module'
+--     revision VARCHAR(10) DEFAULT 'A',         -- Engineering changes
+    
+--     is_active BOOLEAN DEFAULT TRUE,
+--     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+-- ) ENGINE=InnoDB;
+
 -- Optional: Link it to a specific Product (SCU vs PEPS)
 -- If NULL, this fixture/controller pair works for ANY product
 -- (Product scope is modeled per-row in equipment_product_capability.)
@@ -91,7 +122,8 @@ CREATE TABLE equipment_product_capability (
     product_id INT NOT NULL,          -- e.g., SCU, PEPS, BCM
 
     PRIMARY KEY (compatibility_id, product_id),
-    FOREIGN KEY (compatibility_id) REFERENCES equipment_compatibility(compatibility_id)
+    FOREIGN KEY (compatibility_id) REFERENCES equipment_compatibility(compatibility_id),
+    FOREIGN KEY (product_id) REFERENCES products(product_id)
 ) ENGINE=InnoDB;
 
 CREATE TABLE manufacturing_orders (
@@ -172,34 +204,3 @@ CREATE TABLE manufacturing_result (
     FOREIGN KEY (controller_id) REFERENCES equipment_hierarchy(id),
     FOREIGN KEY (fixture_id) REFERENCES equipment_hierarchy(id)
 ) ENGINE=InnoDB;
-
--- The products Master Table: A place to store all product definitions
-CREATE TABLE products (
-    product_id INT PRIMARY KEY AUTO_INCREMENT,
-    -- The Part Number, is the unique identifier for the product, this is for intenal use of PLC/EOL/Kafka,not to customers
-    product_code VARCHAR(50) UNIQUE NOT NULL, -- e.g., 'SCU-1234567890'
-    -- The display name for the product, this is for displaying to internal engineers or operators
-    product_name VARCHAR(100) NOT NULL, -- e.g., 'SCU-Ford-CD4-RevB'
-    product_description TEXT,           -- e.g., 'SCU-Ford-CD4-RevB is a controller module for Ford CD4'    
-    -- The broader family grouping
-    product_type VARCHAR(50) NOT NULL, -- e.g., 'SCU', 'PEPS', 'BCM'
-    product_revision VARCHAR(20), -- Engineering change level (e.g., "Rev B")
-    product_status ENUM('ACTIVE', 'INACTIVE') DEFAULT 'ACTIVE',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
--- CREATE TABLE products (
---     product_id INT PRIMARY KEY AUTO_INCREMENT,
-    
---     -- The "Human Readable" Part Number or Variant Code
---     product_code VARCHAR(50) UNIQUE NOT NULL, -- e.g., 'SCU-CD4', 'SCU-CD391'
-    
---     -- The broader family grouping
---     product_family VARCHAR(50) NOT NULL,      -- e.g., 'SCU', 'PEPS', 'BCM'
-    
---     display_name VARCHAR(100) NOT NULL,       -- e.g., 'SCU CD4 Controller Module'
---     revision VARCHAR(10) DEFAULT 'A',         -- Engineering changes
-    
---     is_active BOOLEAN DEFAULT TRUE,
---     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
--- ) ENGINE=InnoDB;
